@@ -9,6 +9,7 @@ let quotes = [
     const quoteDisplay = document.getElementById("quoteDisplay");
     const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
     quoteDisplay.innerHTML = `<p>"${randomQuote.text}"</p><em>— ${randomQuote.category}</em>`;
+    saveLastViewedQuote(randomQuote);
   }
   
   // Function to add a new quote
@@ -41,8 +42,13 @@ let quotes = [
     }
   }
   
+  // Save the last viewed quote to sessionStorage
+  function saveLastViewedQuote(quote) {
+    sessionStorage.setItem("lastViewedQuote", JSON.stringify(quote));
+  }
+  
   // Export quotes to JSON
-  function exportQuotes() {
+  function exportToJsonFile() {
     const dataStr = JSON.stringify(quotes);
     const dataBlob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(dataBlob);
@@ -87,6 +93,19 @@ let quotes = [
     quoteDisplay.innerHTML = filteredQuotes
       .map((quote) => `<p>"${quote.text}"</p><em>— ${quote.category}</em>`)
       .join("");
+    saveSelectedCategory(selectedCategory);
+  }
+  
+  // Save the selected category to localStorage
+  function saveSelectedCategory(category) {
+    localStorage.setItem("selectedCategory", category);
+  }
+  
+  // Load the selected category from localStorage
+  function loadSelectedCategory() {
+    const selectedCategory = localStorage.getItem("selectedCategory") || "all";
+    document.getElementById("categoryFilter").value = selectedCategory;
+    filterQuotes();
   }
   
   // Fetch quotes from server (simulated using JSONPlaceholder)
@@ -108,19 +127,30 @@ let quotes = [
     saveQuotes();
     populateCategories();
     showRandomQuote();
-    alert("Quotes synced with server!");
+    showNotification("Quotes synced with server!");
+  }
+  
+  // Show a notification
+  function showNotification(message) {
+    const notification = document.createElement("div");
+    notification.innerText = message;
+    notification.style.position = "fixed";
+    notification.style.bottom = "20px";
+    notification.style.right = "20px";
+    notification.style.backgroundColor = "lightgreen";
+    notification.style.padding = "10px";
+    notification.style.borderRadius = "5px";
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 3000);
   }
   
   // Event listener for the "Show New Quote" button
   document.getElementById("newQuote").addEventListener("click", showRandomQuote);
   
-  // Add export button to HTML
-  document.body.innerHTML += `<button onclick="exportQuotes()">Export Quotes</button>
-  <input type="file" id="importFile" accept=".json" onchange="importFromJsonFile(event)" />`;
-  
-  // Load quotes and categories on page load
+  // Load quotes, categories, and selected category on page load
   loadQuotes();
   populateCategories();
+  loadSelectedCategory();
   showRandomQuote();
   
   // Sync quotes periodically (every 60 seconds)
